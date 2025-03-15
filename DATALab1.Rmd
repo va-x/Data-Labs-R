@@ -1,0 +1,92 @@
+---
+title: "Absenteeism Analysis"
+author: "Savaira Imran"
+date: "2025-02-22"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+knitr::opts_chunk$set(echo = TRUE)
+
+# Read in the dataset
+df <- read.csv("Absenteeism_at_work.csv", sep=";", header=TRUE)
+
+# Check the structure of the data to understand the columns
+str(df)
+```
+
+1.  Scatter Plot of Height vs. Weight
+
+```{r}
+# Plot scatter plot of height vs. weight (weight on x-axis)
+plot(df$Weight, df$Height, main="Scatter Plot of Height vs. Weight",
+     xlab="Weight (kg)", ylab="Height (cm)", pch=19, col=rgb(0.1, 0.2, 0.8, 0.5))
+```
+
+As weight goes up, the plot points become more scattered.
+
+2.  Histogram
+
+```{r}
+# Plot histogram of hours of absences
+hist(df$Absenteeism.time.in.hours, main="Histogram of Absenteeism Hours",
+     xlab="Hours of Absence", col="lightblue", border="black", breaks=20)
+```
+
+Frequency goes down as hours of absence go up.
+
+3.  Histogram of Age of Person Corresponding to each Absence
+
+```{r}
+# Plot histogram of age corresponding to each absence
+hist(df$Age, main="Histogram of Age of Employee",
+     xlab="Age", col="lightgreen", border="black", breaks=15)
+```
+
+Between age 35-40, the frequency is highest.
+
+4.  Bar Plot of Hours by Month
+
+```{r}
+# Create a bar plot of total absentee hours by month
+library(dplyr)
+df_monthly <- df %>%
+  group_by(Month.of.absence) %>%
+  summarise(Total.absent.hours = sum(Absenteeism.time.in.hours, na.rm=TRUE))
+
+barplot(df_monthly$Total.absent.hours, names.arg=df_monthly$Month.of.absence,
+        main="Bar Plot of Absenteeism Hours by Month", xlab="Month", ylab="Total Absenteeism Hours",
+        col="salmon", border="black")
+```
+
+Total hours are highest on month 3 and month 7.
+
+5.  Box plots of hours by social smoker status
+
+```{r}
+# Box plot of absenteeism hours by smoker status
+boxplot(Absenteeism.time.in.hours ~ Social.smoker, data=df, 
+        main="Boxplot of Absenteeism Hours by Social Smoker",
+        xlab="Social Smoker", ylab="Absenteeism Hours",
+        col=c("lightblue", "pink"), border="black", notch=TRUE)
+legend("topright", legend=c("Non-Smoker", "Smoker"), fill=c("lightblue", "pink"))
+```
+
+Non-smokers have a lot of outliers.
+
+6.  Box Plots of Hours by Social Drinker Status
+
+```{r}
+# Box plot of absenteeism hours by social drinker status
+boxplot(Absenteeism.time.in.hours ~ Social.drinker, data=df, 
+        main="Boxplot of Absenteeism Hours by Social Drinker",
+        xlab="Social Drinker", ylab="Absenteeism Hours",
+        col=c("lightgreen", "lightcoral"), border="black", notch=TRUE)
+legend("topright", legend=c("Non-Drinker", "Drinker"), fill=c("lightgreen", "lightcoral"))
+```
+
+The distribution of absenteeism hours for non-drinkers and drinkers are similar.
