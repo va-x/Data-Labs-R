@@ -1,0 +1,189 @@
+---
+title: "IMDB Movies Data Analysis"
+author: "Savaira Imran"
+date: "3/06/2025"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Required Libraries
+
+```{r}
+library(ggplot2movies)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+## Load Data
+
+```{r}
+data(movies)
+```
+
+## 1. Range of Years of Production
+
+```{r}
+year_range <- range(movies$year)
+year_range
+```
+
+## 2. Proportion of Movies with Budget Information
+
+```{r}
+budget_proportion <- mean(!is.na(movies$budget))
+no_budget_proportion <- mean(is.na(movies$budget))
+
+expensive_movies <- movies %>% 
+  filter(!is.na(budget)) %>% 
+  arrange(desc(budget)) %>% 
+  select(title, year, budget) %>% 
+  head(5)
+
+budget_proportion
+no_budget_proportion
+expensive_movies
+```
+
+## 3. Top 5 Longest Movies
+
+```{r}
+longest_movies <- movies %>% 
+  arrange(desc(length)) %>% 
+  select(title, year, length) %>% 
+  head(5)
+longest_movies
+```
+
+## 4. Shortest and Longest Short Movies
+
+```{r}
+short_movies <- movies %>% filter(if_any(starts_with("Short"), ~ . == 1))
+shortest_short <- short_movies %>% arrange(length) %>% select(title, length) %>% head(1)
+longest_short <- short_movies %>% arrange(desc(length)) %>% select(title, length) %>% head(1)
+
+shortest_short
+longest_short
+```
+
+## 5. Number of Movies per Genre
+
+```{r}
+genre_counts <- movies %>% 
+  summarise(
+    Action = sum(Action),
+    animation = sum(Animation),
+    comedy = sum(Comedy),
+    drama = sum(Drama),
+    documentary = sum(Documentary),
+    romance = sum(Romance),
+    Short = sum(Short)
+  ) %>% 
+  pivot_longer(cols = everything(), names_to = "genre", values_to = "count")
+
+ggplot(genre_counts, aes(x = genre, y = count, fill = genre)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Number of Movies per Genre", x = "Genre", y = "Count")
+```
+
+## 6. Average Rating by Genre
+
+```{r}
+ratings_per_genre <- movies %>% 
+  summarise(
+    Action = mean(rating[Action == 1], na.rm = TRUE),
+    animation = mean(rating[Animation == 1], na.rm = TRUE),
+    comedy = mean(rating[Comedy == 1], na.rm = TRUE),
+    drama = mean(rating[Drama == 1], na.rm = TRUE),
+    documentary = mean(rating[Documentary == 1], na.rm = TRUE),
+    romance = mean(rating[Romance == 1], na.rm = TRUE),
+    Short = mean(rating[Short == 1], na.rm = TRUE)
+  ) %>% 
+  pivot_longer(cols = everything(), names_to = "genre", values_to = "avg_rating")
+
+ggplot(ratings_per_genre, aes(x = genre, y = avg_rating, fill = genre)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Average Rating per Genre", x = "Genre", y = "Average Rating")
+```
+
+## 7. Average Rating of Movies (2000-2005)
+
+```{r}
+avg_rating_2000_2005 <- movies %>% 
+  filter(year >= 2000 & year <= 2005) %>%
+  summarise(
+    Action = mean(rating[Action == 1], na.rm = TRUE),
+    animation = mean(rating[Animation == 1], na.rm = TRUE),
+    comedy = mean(rating[Comedy == 1], na.rm = TRUE),
+    drama = mean(rating[Drama == 1], na.rm = TRUE),
+    documentary = mean(rating[Documentary == 1], na.rm = TRUE),
+    romance = mean(rating[Romance == 1], na.rm = TRUE)
+  ) %>% 
+  pivot_longer(cols = everything(), names_to = "genre", values_to = "avg_rating")
+
+ggplot(avg_rating_2000_2005, aes(x = genre, y = avg_rating, fill = genre)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Average Rating per Genre (2000-2005)", x = "Genre", y = "Average Rating")
+```
+
+## 8. Movie Production Trends (1990+)
+
+```{r}
+movies_1990 <- movies %>% 
+  filter(year >= 1990) %>% 
+  group_by(year) %>% 
+  summarise(
+    Action = sum(Action),
+    animation = sum(Animation),
+    comedy = sum(Comedy),
+    drama = sum(Drama),
+    documentary = sum(Documentary),
+    romance = sum(Romance)
+  ) %>% 
+  pivot_longer(cols = -year, names_to = "genre", values_to = "count")
+
+ggplot(movies_1990, aes(x = year, y = count, color = genre)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Movies Produced Per Year (1990+)", x = "Year", y = "Count")
+```
+
+## 9. Custom Questions
+
+### a) Which genre has the highest-rated movie?
+
+```{r}
+highest_rated <- movies %>% 
+  arrange(desc(rating)) %>% 
+  select(title, rating) %>% 
+  head(1)
+highest_rated
+```
+
+### b) How does budget correlate with ratings?
+
+```{r}
+ggplot(movies, aes(x = budget, y = rating)) +
+  geom_point(alpha = 0.3) +
+  theme_minimal() +
+  labs(title = "Budget vs. Rating", x = "Budget (USD)", y = "IMDB Rating")
+```
+
+### c) What is the distribution of movie lengths?
+
+```{r}
+ggplot(movies, aes(x = length)) +
+  geom_histogram(binwidth = 10, fill = "blue", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Movie Lengths", x = "Length (minutes)", y = "Count")
+```
+
+------------------------------------------------------------------------
+
+This report provides insights into the IMDB movies dataset with visualizations and statistical summaries.
